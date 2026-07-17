@@ -1,0 +1,25 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Runtime data and secrets
+.env
+backend/instance/*.db
+backend/instance/*.sqlite*
+backend/instance/staging/*
+!backend/instance/staging/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
