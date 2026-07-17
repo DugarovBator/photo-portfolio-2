@@ -58,6 +58,20 @@ function Eyebrow({ children }: { children: string }) {
   return <p className="eyebrow"><span />{children}</p>;
 }
 
+function useGalleryColumnCount() {
+  const getColumnCount = () => typeof window !== "undefined" && window.matchMedia("(min-width: 1101px)").matches ? 3 : 2;
+  const [columnCount, setColumnCount] = useState(getColumnCount);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1101px)");
+    const update = () => setColumnCount(media.matches ? 3 : 2);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return columnCount;
+}
+
 function PublicSite() {
   const [photos, setPhotos] = useState<Photo[]>(fallback);
   const [activeFilter, setActiveFilter] = useState<Filter>("Все");
@@ -86,6 +100,25 @@ function PublicSite() {
     () => activeFilter === "Все" ? photos : photos.filter((photo) => photo.category === activeFilter),
     [activeFilter, photos]
   );
+  const galleryColumnCount = useGalleryColumnCount();
+  const galleryColumns = useMemo(() => {
+    const count = Math.min(galleryColumnCount, Math.max(visiblePhotos.length, 1));
+    const columns = Array.from({ length: count }, () => ({
+      estimatedHeight: 0,
+      items: [] as Array<{ photo: Photo; index: number }>
+    }));
+
+    visiblePhotos.forEach((photo, index) => {
+      const ratio = photo.width && photo.height ? photo.width / photo.height : 4 / 5;
+      const shortest = columns.reduce((current, column) =>
+        column.estimatedHeight < current.estimatedHeight ? column : current
+      );
+      shortest.items.push({ photo, index });
+      shortest.estimatedHeight += 1 / Math.max(ratio, 0.45) + 0.05;
+    });
+
+    return columns.map((column) => column.items);
+  }, [galleryColumnCount, visiblePhotos]);
   const selectedIndex = selectedId === null ? -1 : visiblePhotos.findIndex((photo) => photo.id === selectedId);
   const selectedPhoto = selectedIndex >= 0 ? visiblePhotos[selectedIndex] : null;
 
@@ -122,7 +155,7 @@ function PublicSite() {
           <div className="hero-orbit hero-orbit-two" />
           <div className="hero-content page-width">
             <div className="hero-kicker"><span className="status-dot" /> Архив визуальных наблюдений</div>
-            <h1 id="hero-title">Батор<br /><em>Дугаров</em></h1>
+            <h1 id="hero-title"><span>Батор</span><em>Дугаров</em></h1>
             <div className="hero-bottomline">
               <p className="hero-role">Фотограф</p>
               <p className="hero-statement">Фотография — это способ<br />оставить тишину видимой.</p>
@@ -160,26 +193,38 @@ function PublicSite() {
 
           {loading && <div className="gallery-status">Собираем архив…</div>}
           {!apiAvailable && <div className="gallery-status is-muted">Показаны временные кадры. Подключите сервер, чтобы увидеть актуальный архив.</div>}
-          <div className="gallery-grid" key={activeFilter} aria-live="polite">
-            {visiblePhotos.map((photo, index) => (
-              <button
-                type="button"
-                className={`art-card art-card-${index % 6}`}
-                key={photo.id}
-                style={{ "--accent": photo.accentColor } as CSSProperties}
-                onClick={() => setSelectedId(photo.id)}
-                aria-label={`Открыть фотографию «${photo.title}»`}
-              >
-                <img src={photo.image} alt={photo.title} loading={index < 3 ? "eager" : "lazy"} />
-                <span className="card-wash" />
-                <span className="card-glow" />
-                <span className="card-meta">
-                  <span className="card-category">{photo.category}</span>
-                  <strong>{photo.title}</strong>
-                  <span className="card-open">Открыть <i>↗</i></span>
-                </span>
-                <span className="card-number">{String(index + 1).padStart(2, "0")}</span>
-              </button>
+          <div
+            className="gallery-grid"
+            key={activeFilter}
+            style={{ "--gallery-columns": galleryColumns.length } as CSSProperties}
+            aria-live="polite"
+          >
+            {galleryColumns.map((column, columnIndex) => (
+              <div className="gallery-column" key={columnIndex}>
+                {column.map(({ photo, index }) => (
+                  <button
+                    type="button"
+                    className="art-card"
+                    key={photo.id}
+                    style={{
+                      "--accent": photo.accentColor,
+                      "--photo-ratio": photo.width && photo.height ? `${photo.width} / ${photo.height}` : "4 / 5"
+                    } as CSSProperties}
+                    onClick={() => setSelectedId(photo.id)}
+                    aria-label={`Открыть фотографию «${photo.title}»`}
+                  >
+                    <img src={photo.image} alt={photo.title} loading={index < 3 ? "eager" : "lazy"} />
+                    <span className="card-wash" />
+                    <span className="card-glow" />
+                    <span className="card-meta">
+                      <span className="card-category">{photo.category}</span>
+                      <strong>{photo.title}</strong>
+                      <span className="card-open">Открыть <i>↗</i></span>
+                    </span>
+                    <span className="card-number">{String(index + 1).padStart(2, "0")}</span>
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
           {!visiblePhotos.length && <div className="empty-state">В этой категории пока нет кадров.</div>}
