@@ -318,6 +318,7 @@ function AdminApp() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loginError, setLoginError] = useState("");
   const [editorPhoto, setEditorPhoto] = useState<Photo | null | undefined>(undefined);
+  const dragIndex = useRef<number | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -390,7 +391,6 @@ function AdminApp() {
     }
   };
 
-  const dragIndex = useRef<number | null>(null);
   const onDrop = (event: DragEvent<HTMLLIElement>, targetIndex: number) => {
     event.preventDefault();
     const sourceIndex = dragIndex.current;
