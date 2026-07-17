@@ -240,9 +240,9 @@ function PublicSite() {
             <div className="contact-side">
               <p>Для съёмок, проектов и тихих разговоров о визуальном языке.</p>
               <div className="contact-links">
-                <a href="https://t.me/" target="_blank" rel="noreferrer">Telegram <span>↗</span></a>
-                <a href="https://instagram.com/" target="_blank" rel="noreferrer">Instagram <span>↗</span></a>
-                <a href="mailto:hello@example.com">Email <span>↗</span></a>
+                <a href="https://t.me/alter_ego1907" target="_blank" rel="noreferrer">Telegram-канал <span>↗</span></a>
+                <a href="https://t.me/bdugarov332" target="_blank" rel="noreferrer">Написать в Telegram <span>↗</span></a>
+                <a href="mailto:bdugarov332@gmail.com">Email <span>↗</span></a>
               </div>
             </div>
           </div>
